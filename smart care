@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCare - A-Z Healthcare & Generic Medicine Finder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js for 3D Visuals -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#e8f5e9',
+                            100: '#c8e6c9',
+                            200: '#a5d6a7',
+                            500: '#4caf50',
+                            600: '#2e7d32',
+                            700: '#1b5e20',
+                            800: '#144718',
+                            900: '#0d3110',
+                            950: '#061a08',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #a5d6a7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e7d32; }
+
+        .scan-line {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #4caf50, transparent);
+            animation: scanAnim 2s infinite ease-in-out;
+        }
+        @keyframes scanAnim {
+            0% { top: 0%; opacity: 0.8; }
+            50% { top: 95%; opacity: 1; }
+            100% { top: 0%; opacity: 0.8; }
+        }
+
+        .tab-btn.active {
+            background-color: #2e7d32;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+        }
+        .tab-btn.active i {
+            color: #a5d6a7 !important;
+        }
+
+        .alpha-btn.active-letter {
+            background-color: #1b5e20 !important;
+            color: #ffffff !important;
+            border-color: #1b5e20 !important;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- ========================================== -->
+    <!-- 1. AUTHENTICATION PAGE (SIGN IN / SIGN UP) -->
+    <!-- ========================================== -->
+    <div id="authScreen" class="fixed inset-0 z-50 bg-gradient-to-br from-brand-950 via-brand-900 to-slate-900 flex items-center justify-center p-4">
+        <!-- Ambient Decorative Glowing Orbs -->
+        <div class="absolute w-96 h-96 bg-brand-500/20 rounded-full blur-3xl -top-10 -left-10 pointer-events-none"></div>
+        <div class="absolute w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl -bottom-10 -right-10 pointer-events-none"></div>
+
+        <div class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
+            <!-- Brand Logo Header -->
+            <div class="text-center space-y-2 mb-6">
+                <div class="w-14 h-14 bg-brand-700 text-white rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-lg shadow-brand-700/30">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Smart<span class="text-brand-600">Care</span> Portal</h1>
+                <p class="text-xs font-medium text-slate-500">A-Z Intelligent Healthcare & Generic Drug Directory</p>
+            </div>
+
+            <!-- Auth Mode Switch Tabs -->
+            <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+                <button id="tabSignInBtn" onclick="switchAuthMode('signin')" class="flex-1 py-2 text-xs font-bold rounded-lg text-brand-700 bg-white shadow-sm transition-all">Sign In</button>
+                <button id="tabSignUpBtn" onclick="switchAuthMode('signup')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all">Sign Up</button>
+            </div>
+
+            <!-- SIGN IN FORM -->
+            <form id="signInForm" onsubmit="handleAuthSubmit(event, 'signin')" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Username or Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="signInUsername" required value="admin" placeholder="Enter username" 
+                               class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="password" id="signInPassword" required value="admin123" placeholder="••••••••" 
+                               class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center space-x-2 text-slate-600 cursor-pointer">
+                        <input type="checkbox" checked class="rounded text-brand-600 focus:ring-brand-500">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" onclick="alert('Demo reset instructions: Use admin / admin123 or click Quick Demo Access.')" class="text-brand-600 font-semibold hover:underline">Forgot password?</a>
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm rounded-lg shadow-lg shadow-brand-700/25 transition-all flex items-center justify-center space-x-2">
+                    <span>Sign In to Dashboard</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+
+            <!-- SIGN UP FORM -->
+            <form id="signUpForm" onsubmit="handleAuthSubmit(event, 'signup')" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="signUpName" required placeholder="Dr. John Doe" 
+                               class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="email" id="signUpEmail" required placeholder="john@smartcare.org" 
+                               class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Choose Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="password" id="signUpPassword" required placeholder="Create password" 
+                               class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm rounded-lg shadow-lg shadow-brand-700/25 transition-all flex items-center justify-center space-x-2">
+                    <span>Create Account & Start</span>
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                </button>
+            </form>
+
+            <!-- Quick Demo Bypass -->
+            <div class="mt-6 pt-5 border-t border-slate-200 text-center">
+                <button onclick="loginAsDemo()" class="w-full py-2.5 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-lg border border-brand-200 transition-colors flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Quick Demo Access (Skip Login)</span>
+                </button>
+                <p class="text-[11px] text-slate-400 mt-2">Default credentials: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">admin</code> / <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">admin123</code></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. MAIN APPLICATION WORKSPACE              -->
+    <!-- ========================================== -->
+    <div id="appContainer" class="flex-1 flex flex-col md:flex-row min-h-screen hidden">
+
+        <!-- Mobile Header Bar -->
+        <header class="md:hidden bg-brand-950 text-white p-4 flex justify-between items-center sticky top-0 z-40 shadow-md">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🩺</span>
+                <span class="font-bold text-lg tracking-wide">Smart<span class="text-brand-400">Care</span></span>
+            </div>
+            <button onclick="toggleMobileSidebar()" class="p-2 text-slate-200 hover:text-white focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Sidebar Mobile Backdrop -->
+        <div id="sidebarOverlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden transition-opacity"></div>
+
+        <!-- LEFT SIDEBAR NAVIGATION -->
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-brand-950 text-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl shrink-0">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-6 flex items-center justify-between border-b border-brand-900">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white text-xl shadow-lg shadow-brand-600/30">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-xl tracking-wide text-white">Smart<span class="text-brand-500">Care</span></h1>
+                            <p class="text-[10px] text-brand-200 font-medium tracking-wider uppercase">Health Directory</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-4 space-y-2">
+                    <p class="px-3 text-[11px] font-bold text-brand-200 uppercase tracking-wider mb-2">Core Modules</p>
+                    
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn active w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-brand-900">
+                        <i class="fa-solid fa-chart-line w-5 text-center text-brand-400"></i>
+                        <span>Dashboard</span>
+                    </button>
+
+                    <button onclick="switchTab('find-medicines')" id="nav-find-medicines" class="tab-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-brand-900">
+                        <i class="fa-solid fa-pills w-5 text-center text-brand-400"></i>
+                        <span>Find Medicines (A-Z)</span>
+                    </button>
+
+                    <button onclick="switchTab('diet-assistance')" id="nav-diet-assistance" class="tab-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-brand-900">
+                        <i class="fa-solid fa-apple-whole w-5 text-center text-brand-400"></i>
+                        <span>Diet Assistance</span>
+                    </button>
+
+                    <button onclick="switchTab('scan-prescription')" id="nav-scan-prescription" class="tab-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-brand-900">
+                        <i class="fa-solid fa-camera w-5 text-center text-brand-400"></i>
+                        <span>Scan Prescription</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Profile & Logout Bottom Section -->
+            <div class="p-4 border-t border-brand-900 bg-brand-950">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-brand-900/60 border border-brand-800/40">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div id="userAvatar" class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                            A
+                        </div>
+                        <div class="truncate">
+                            <p id="userNameDisplay" class="text-xs font-bold text-white truncate">Admin User</p>
+                            <p class="text-[10px] text-brand-200 truncate">Verified Account</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" title="Sign Out" class="text-slate-400 hover:text-rose-400 p-2 transition-colors">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE CONTENT CONTAINER -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50 min-h-screen overflow-y-auto">
+            
+            <!-- Global Top Header Bar -->
+            <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-0 z-30 shadow-sm">
+                <div>
+                    <h2 id="activePageTitle" class="text-lg font-bold text-slate-800">SmartCare Overview</h2>
+                    <p class="text-xs text-slate-500">A-Z Medicine Search & Clinical Wellness System</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        A-Z Database Online
+                    </span>
+                    <button onclick="switchTab('scan-prescription')" class="px-3 py-1.5 bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+                        + Scan Prescription
+                    </button>
+                </div>
+            </header>
+
+            <!-- ==================================================== -->
+            <!-- TAB 1: DASHBOARD VIEW (WITH 3D CANVAS ON THE RIGHT)  -->
+            <!-- ==================================================== -->
+            <div id="tabView-dashboard" class="p-6 max-w-7xl w-full mx-auto space-y-6 flex-1">
+                
+                <!-- HERO BANNER WITH 3D CANVAS ANIMATION -->
+                <div class="bg-gradient-to-r from-brand-950 via-brand-900 to-slate-900 rounded-2xl text-white overflow-hidden shadow-xl border border-brand-800/50 relative">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[300px] items-center">
+                        
+                        <!-- Left Hero Details -->
+                        <div class="lg:col-span-7 p-8 space-y-4 z-10">
+                            <span class="inline-block px-3 py-1 bg-brand-500/20 text-brand-300 border border-brand-500/30 rounded-full text-xs font-semibold uppercase tracking-wider">
+                                Comprehensive Healthcare Directory
+                            </span>
+                            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                                Welcome to <span class="text-brand-400">SmartCare</span>
+                            </h1>
+                            <p class="text-sm text-slate-300 leading-relaxed max-w-xl">
+                                Instantly search medicines by letter from A to Z, discover generic alternatives, view dietary guidelines, or scan prescription photos for instant generic savings.
+                            </p>
+                            <div class="pt-2 flex flex-wrap gap-3">
+                                <button onclick="switchTab('find-medicines')" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-brand-600/30 transition-all flex items-center space-x-2">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>Browse A-Z Medicines</span>
+                                </button>
+                                <button onclick="switchTab('scan-prescription')" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold rounded-xl transition-all">
+                                    <span>Scan Prescription</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right 3D Visual Canvas (Medical Cross + Helix DNA) -->
+                        <div class="lg:col-span-5 h-[280px] sm:h-[320px] w-full relative flex items-center justify-center">
+                            <canvas id="canvas3d" class="w-full h-full block focus:outline-none"></canvas>
+                            <div class="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 text-[10px] text-brand-300 flex items-center space-x-2 pointer-events-none">
+                                <i class="fa-solid fa-cube text-brand-400 animate-spin"></i>
+                                <span>3D Interactive Graphics Canvas</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- METRICS COUNTER CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div onclick="switchTab('find-medicines')" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 bg-brand-50 rounded-xl text-brand-700 text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-font"></i>
+                            </div>
+                            <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md">A to Z Filter</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-3">26 Letters Covered</h3>
+                        <p class="text-xs text-slate-500 mt-1">Instant generic medicine lookup for every letter</p>
+                    </div>
+
+                    <div onclick="switchTab('diet-assistance')" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 bg-emerald-50 rounded-xl text-emerald-700 text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-apple-whole"></i>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">Condition Guides</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-3">7 Categories</h3>
+                        <p class="text-xs text-slate-500 mt-1">Diabetes, Weight Loss, BP, Thyroid & more</p>
+                    </div>
+
+                    <div onclick="switchTab('scan-prescription')" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group sm:col-span-2 lg:col-span-1">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 bg-blue-50 rounded-xl text-blue-700 text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-file-medical"></i>
+                            </div>
+                            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">OCR Simulation</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-3">Rx Image Scanner</h3>
+                        <p class="text-xs text-slate-500 mt-1">Extract medicine names from photos</p>
+                    </div>
+                </div>
+
+                <!-- NAVIGATION MODULE TILES -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="w-10 h-10 rounded-lg bg-brand-100 text-brand-800 flex items-center justify-center text-lg font-bold mb-4">
+                                <i class="fa-solid fa-capsules"></i>
+                            </div>
+                            <h3 class="font-bold text-base text-slate-800">1. Find Medicines (A-Z)</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                Type any letter (e.g., 'p' or 'm') or click alphabet buttons to explore matching generic & branded medicines.
+                            </p>
+                        </div>
+                        <button onclick="switchTab('find-medicines')" class="mt-6 w-full py-2.5 bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center space-x-2">
+                            <span>Open Medicines Tab</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-lg font-bold mb-4">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+                            <h3 class="font-bold text-base text-slate-800">2. Diet Assistance</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                Get nutritional guidance tailored for Diabetes, Weight Loss, Thyroid, Hypertension, and Fatty Liver.
+                            </p>
+                        </div>
+                        <button onclick="switchTab('diet-assistance')" class="mt-6 w-full py-2.5 bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center space-x-2">
+                            <span>Open Diet Tab</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center text-lg font-bold mb-4">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                            <h3 class="font-bold text-base text-slate-800">3. Scan Prescription</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                Upload prescription photos to automatically extract medicine text and calculate generic price savings.
+                            </p>
+                        </div>
+                        <button onclick="switchTab('scan-prescription')" class="mt-6 w-full py-2.5 bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center space-x-2">
+                            <span>Open Scanner Tab</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================== -->
+            <!-- TAB 2: A-Z SEARCHABLE MEDICINE DIRECTORY             -->
+            <!-- ==================================================== -->
+            <div id="tabView-find-medicines" class="p-6 max-w-7xl w-full mx-auto space-y-6 flex-1 hidden">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-pills text-brand-700"></i>
+                                A-Z Medicine & Generic Alternative Finder
+                            </h3>
+                            <p class="text-xs text-slate-500">Search by typing any letter or click an alphabet letter button (A–Z) to filter medicines.</p>
+                        </div>
+                        <div id="medCountBadge" class="text-xs font-semibold px-3 py-1 bg-brand-50 text-brand-700 border border-brand-200 rounded-lg self-start sm:self-auto">
+                            Showing All Medicines
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Search Bar -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="medSearchInput" oninput="handleRealtimeMedSearch()" 
+                               placeholder="Type a letter (e.g. 'p', 'm', 'a') or medicine name..." 
+                               class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all shadow-inner">
+                        <button id="clearSearchBtn" onclick="clearMedSearch()" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm p-1">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Alphabet Filter Toolbar (A through Z) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-600">
+                            <span>Filter by Letter:</span>
+                            <button onclick="filterByLetter('ALL')" class="text-brand-700 hover:underline">Show All (A-Z)</button>
+                        </div>
+                        <div id="alphabetBar" class="flex flex-wrap gap-1.5 pt-1">
+                            <!-- Injected by JavaScript A-Z -->
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Results Grid -->
+                    <div id="medListGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <!-- Medicine Cards Injected Here -->
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- ==================================================== -->
+            <!-- TAB 3: DIET ASSISTANCE MODULE                        -->
+            <!-- ==================================================== -->
+            <div id="tabView-diet-assistance" class="p-6 max-w-7xl w-full mx-auto space-y-6 flex-1 hidden">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-utensils text-brand-700"></i>
+                                Personalized Clinical Diet Recommendations
+                            </h3>
+                            <p class="text-xs text-slate-500">Nutritional guidelines tailored for medical health conditions.</p>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg self-start sm:self-auto">
+                            Nutritionist Reviewed
+                        </span>
+                    </div>
+
+                    <!-- Search Input -->
+                    <form onsubmit="handleDietSearch(event)" class="flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-heart-pulse absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="dietQueryInput" placeholder="Search disease (e.g. Diabetes, Weight Loss, BP, Thyroid, Gerd, Kidney)..." 
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-brand-600 focus:outline-none transition-all">
+                        </div>
+                        <button type="submit" class="px-6 py-3 bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-apple-whole"></i>
+                            <span>Get Diet Plan</span>
+                        </button>
+                    </form>
+
+                    <!-- Quick Condition Tags -->
+                    <div class="flex items-center flex-wrap gap-2 text-xs">
+                        <span class="text-slate-500 font-medium">Quick Health Profiles:</span>
+                        <button onclick="triggerQuickDiet('diabetes')" class="px-3 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-slate-600 border border-slate-200 transition-colors">Diabetes</button>
+                        <button onclick="triggerQuickDiet('weight_loss')" class="px-3 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-slate-600 border border-slate-200 transition-colors">Weight Loss</button>
+                        <button onclick="triggerQuickDiet('hypertension')" class="px-3 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-slate-600 border border-slate-200 transition-colors">Hypertension</button>
+                        <button onclick="triggerQuickDiet('thyroid')" class="px-3 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-slate-600 border border-slate-200 transition-colors">Thyroid</button>
+                        <button onclick="triggerQuickDiet('fatty_liver')" class="px-3 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-slate-600 border border-slate-200 transition-colors">Fatty Liver</button>
+                        <button onclick="triggerQuickDiet('gerd')" class="px-3 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-slate-600 border border-slate-200 transition-colors">GERD / Acid Reflux</button>
+                    </div>
+
+                    <!-- Dynamic Diet Results Display -->
+                    <div id="dietResultsDisplay" class="pt-2">
+                        <!-- Default prompt injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ==================================================== -->
+            <!-- TAB 4: SCAN PRESCRIPTION MODULE                      -->
+            <!-- ==================================================== -->
+            <div id="tabView-scan-prescription" class="p-6 max-w-7xl w-full mx-auto space-y-6 flex-1 hidden">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-brand-700"></i>
+                                Prescription OCR Image Scanner
+                            </h3>
+                            <p class="text-xs text-slate-500">Upload prescription photo or medical receipts to extract generic savings.</p>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg self-start sm:self-auto">
+                            OCR Machine Vision Engine
+                        </span>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div id="dropzone" onclick="document.getElementById('prescriptionFile').click()" 
+                         class="border-2 border-dashed border-slate-300 hover:border-brand-600 bg-slate-50 hover:bg-brand-50/20 rounded-2xl p-8 text-center transition-all cursor-pointer relative group">
+                        <input type="file" id="prescriptionFile" accept="image/*" onchange="handleFileSelect(event)" class="hidden">
+                        
+                        <div class="space-y-3">
+                            <div class="w-16 h-16 bg-brand-100 text-brand-700 rounded-2xl flex items-center justify-center text-3xl mx-auto group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700 text-sm">Click to upload prescription photo or drag & drop</h4>
+                                <p class="text-xs text-slate-400 mt-1">Supports JPG, PNG, WEBP images</p>
+                            </div>
+                            <button type="button" class="px-4 py-2 bg-brand-700 text-white font-bold text-xs rounded-lg shadow-sm">
+                                Choose Prescription File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Animated Scanning Progress -->
+                    <div id="scanLoader" class="hidden bg-slate-900 rounded-2xl p-6 text-white text-center space-y-4 relative overflow-hidden">
+                        <div class="scan-line absolute left-0 right-0"></div>
+                        <i class="fa-solid fa-microchip text-4xl text-brand-400 animate-pulse"></i>
+                        <h4 class="font-bold text-base text-brand-300">Scanning Document with Optical Recognition...</h4>
+                        <p class="text-xs text-slate-400 max-w-md mx-auto">Extracting active ingredients and matching with generic database.</p>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden max-w-sm mx-auto border border-slate-700">
+                            <div id="scanProgressBar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <!-- Output Results -->
+                    <div id="scanResultsDisplay" class="hidden space-y-4">
+                        <!-- Output dynamic -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER DISCLAIMER -->
+            <footer class="bg-white border-t border-slate-200 p-6 text-xs text-slate-500 space-y-2 mt-auto">
+                <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="flex items-center space-x-2 text-slate-700 font-bold">
+                        <i class="fa-solid fa-shield-halved text-brand-700"></i>
+                        <span>SmartCare Healthcare Disclaimer</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 text-center sm:text-right">
+                        Informational platform for generic medicine alternatives & dietary guidance. Consult a certified medical doctor before changing prescriptions.
+                    </p>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- COMPARE MEDICINE PRICE MODAL -->
+    <div id="compareModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+            <div class="bg-brand-950 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-brand-400"></i>
+                    Price & Savings Analysis
+                </h3>
+                <button onclick="closeCompareModal()" class="text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="modalBody" class="p-6 space-y-4">
+                <!-- Modal content injected dynamically -->
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end">
+                <button onclick="closeCompareModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC & THREE.JS ENGINE         -->
+    <!-- ========================================== -->
+    <script>
+        // --- EXPENSIVE A-Z MEDICINE DATABASE ---
+        const MEDICINES_DATA = [
+            // Letter A
+            { name: "Amoxicillin IP", brand: "Mox 500 / Novamox", category: "Antibiotic", priceBrand: 105, priceGeneric: 32, savings: 70, dosage: "500mg - Thrice daily after meals" },
+            { name: "Atorvastatin Calcium", brand: "Lipitor / Atorva 10", category: "Cholesterol", priceBrand: 180, priceGeneric: 45, savings: 75, dosage: "10mg - Once daily at bedtime" },
+            { name: "Amlodipine Besylate", brand: "Norvasc / Amlokind", category: "Hypertension (BP)", priceBrand: 65, priceGeneric: 15, savings: 77, dosage: "5mg - Once daily in morning" },
+            { name: "Azithromycin IP", brand: "Zithromax / Azee 500", category: "Antibiotic", priceBrand: 140, priceGeneric: 42, savings: 70, dosage: "500mg - Once daily for 3 to 5 days" },
+            
+            // Letter B
+            { name: "Bisoprolol Fumarate", brand: "Concor 5", category: "Heart & BP", priceBrand: 110, priceGeneric: 28, savings: 75, dosage: "5mg - Once daily in the morning" },
+            { name: "Budesonide Inhaler", brand: "Pulmicort / Budecort", category: "Asthma & Respiratory", priceBrand: 350, priceGeneric: 120, savings: 66, dosage: "200mcg - 2 puffs twice daily" },
+            { name: "Baclofen IP", brand: "Lioresal 10", category: "Muscle Relaxant", priceBrand: 95, priceGeneric: 25, savings: 74, dosage: "10mg - Twice daily after food" },
+
+            // Letter C
+            { name: "Cetirizine Hydrochloride", brand: "Zyrtec / Cetzine", category: "Antihistamine / Allergy", priceBrand: 45, priceGeneric: 10, savings: 78, dosage: "10mg - Once daily at night" },
+            { name: "Ciprofloxacin IP", brand: "Cipro / Ciplox 500", category: "Antibiotic", priceBrand: 85, priceGeneric: 22, savings: 74, dosage: "500mg - Twice daily after meals" },
+            { name: "Clopidogrel IP", brand: "Plavix / Clopivas", category: "Blood Thinner", priceBrand: 210, priceGeneric: 55, savings: 74, dosage: "75mg - Once daily" },
+
+            // Letter D
+            { name: "Dolo 650 (Paracetamol)", brand: "Dolo 650 / Calpol", category: "Analgesic / Fever", priceBrand: 34, priceGeneric: 10, savings: 71, dosage: "650mg - Every 6 hours as needed" },
+            { name: "Doxycycline Hcl", brand: "Vibramycin / Doxicip", category: "Antibiotic", priceBrand: 90, priceGeneric: 24, savings: 73, dosage: "100mg - Twice daily with full glass of water" },
+            { name: "Dapagliflozin", brand: "Farxiga / Oxra", category: "Diabetes", priceBrand: 540, priceGeneric: 140, savings: 74, dosage: "10mg - Once daily in morning" },
+
+            // Letter E
+            { name: "Enalapril Maleate", brand: "Vasotec / Enam 5", category: "Hypertension (BP)", priceBrand: 55, priceGeneric: 14, savings: 75, dosage: "5mg - Once daily" },
+            { name: "Esomeprazole IP", brand: "Nexium / Esomac 40", category: "Acid Reflux / GERD", priceBrand: 160, priceGeneric: 42, savings: 74, dosage: "40mg - 30 minutes before breakfast" },
+            { name: "Empagliflozin", brand: "Jardiance 10", category: "Diabetes", priceBrand: 620, priceGeneric: 165, savings: 73, dosage: "10mg - Once daily in morning" },
+
+            // Letter F
+            { name: "Fluconazole IP", brand: "Diflucan / Forcan 150", category: "Antifungal", priceBrand: 45, priceGeneric: 12, savings: 73, dosage: "150mg - Single dose weekly" },
+            { name: "Furosemide IP", brand: "Lasix 40", category: "Diuretic / BP", priceBrand: 30, priceGeneric: 8, savings: 73, dosage: "40mg - Once daily in morning" },
+            { name: "Fexofenadine IP", brand: "Allegra 120", category: "Allergy", priceBrand: 175, priceGeneric: 48, savings: 73, dosage: "120mg - Once daily" },
+
+            // Letter G
+            { name: "Glimepiride IP", brand: "Amaryl / Glimestar 2", category: "Diabetes", priceBrand: 95, priceGeneric: 22, savings: 77, dosage: "2mg - Take before breakfast" },
+            { name: "Gabapentin IP", brand: "Neurontin / Gabantin 300", category: "Neuropathic Pain", priceBrand: 220, priceGeneric: 60, savings: 73, dosage: "300mg - Once or twice daily" },
+
+            // Letter H
+            { name: "Hydrochlorothiazide", brand: "Esidrix / Aquazide 12.5", category: "Diuretic / BP", priceBrand: 40, priceGeneric: 10, savings: 75, dosage: "12.5mg - Once daily in morning" },
+            { name: "Hydrocortisone Cream", brand: "Cortaid / Histacort", category: "Topical Steroid", priceBrand: 85, priceGeneric: 24, savings: 72, dosage: "Apply thin layer 2 times daily" },
+
+            // Letter I
+            { name: "Ibuprofen IP", brand: "Advil / Brufen 400", category: "NSAID Painkiller", priceBrand: 40, priceGeneric: 11, savings: 72, dosage: "400mg - After food for pain relief" },
+            { name: "Irbesartan IP", brand: "Avapro / Irovel 150", category: "Hypertension (BP)", priceBrand: 190, priceGeneric: 50, savings: 74, dosage: "150mg - Once daily" },
+            { name: "Ivermectin IP", brand: "Stromectol / Ivermect 12", category: "Antiparasitic", priceBrand: 110, priceGeneric: 30, savings: 73, dosage: "12mg - As prescribed on empty stomach" },
+
+            // Letter J
+            { name: "Januvia (Sitagliptin)", brand: "Januvia 100", category: "Antidiabetic", priceBrand: 480, priceGeneric: 130, savings: 73, dosage: "100mg - Once daily" },
+
+            // Letter K
+            { name: "Ketoconazole Shampoo/Tab", brand: "Nizoral / Ketocip", category: "Antifungal", priceBrand: 280, priceGeneric: 85, savings: 70, dosage: "Use 2-3 times per week" },
+            { name: "Ketorolac Tromethamine", brand: "Toradol / Ketorol 10", category: "Severe Pain", priceBrand: 75, priceGeneric: 20, savings: 73, dosage: "10mg - Every 6 hours as directed" },
+
+            // Letter L
+            { name: "Levothyroxine Sodium", brand: "Synthroid / Thyronorm 50", category: "Thyroid Hormone", priceBrand: 180, priceGeneric: 45, savings: 75, dosage: "50mcg - Empty stomach 1hr before breakfast" },
+            { name: "Losartan Potassium", brand: "Cozaar / Losar 50", category: "Hypertension (BP)", priceBrand: 90, priceGeneric: 22, savings: 76, dosage: "50mg - Once daily" },
+            { name: "Loratadine IP", brand: "Claritin / Lorfast", category: "Antihistamine", priceBrand: 60, priceGeneric: 15, savings: 75, dosage: "10mg - Once daily" },
+
+            // Letter M
+            { name: "Metformin Hydrochloride", brand: "Glucophage / Glycomet 500", category: "Diabetes", priceBrand: 120, priceGeneric: 25, savings: 79, dosage: "500mg - Twice daily with meals" },
+            { name: "Montelukast Sodium", brand: "Singulair / Montek LC", category: "Asthma & Allergy", priceBrand: 195, priceGeneric: 52, savings: 73, dosage: "10mg - Once daily in evening" },
+            { name: "Metoprolol Succinate", brand: "Toprol XL / Metolar XR", category: "Heart & BP", priceBrand: 130, priceGeneric: 35, savings: 73, dosage: "25mg - Once daily" },
+
+            // Letter N
+            { name: "Naproxen Sodium", brand: "Aleve / Naprosyn 500", category: "Pain & Inflammation", priceBrand: 80, priceGeneric: 22, savings: 73, dosage: "500mg - Twice daily after meals" },
+            { name: "Nifedipine Retard", brand: "Adalat / Nicardia Retard", category: "Hypertension (BP)", priceBrand: 95, priceGeneric: 26, savings: 73, dosage: "20mg - Twice daily" },
+
+            // Letter O
+            { name: "Omeprazole IP", brand: "Prilosec / Omez 20", category: "Acid Reflux / GERD", priceBrand: 110, priceGeneric: 35, savings: 68, dosage: "20mg - Before breakfast" },
+            { name: "Ofloxacin IP", brand: "Floxin / Ofal 200", category: "Antibiotic", priceBrand: 100, priceGeneric: 28, savings: 72, dosage: "200mg - Twice daily" },
+            { name: "Ondansetron IP", brand: "Zofran / Vomikind 4", category: "Anti-Nausea", priceBrand: 55, priceGeneric: 14, savings: 75, dosage: "4mg - As needed for nausea" },
+
+            // Letter P (Rich list for 'P')
+            { name: "Paracetamol IP", brand: "Crocin / Calpol 650", category: "Fever & Pain", priceBrand: 35, priceGeneric: 10, savings: 71, dosage: "500mg - 650mg as needed" },
+            { name: "Pantoprazole Sodium", brand: "Protonix / Pan 40", category: "Acid Reflux / GERD", priceBrand: 130, priceGeneric: 32, savings: 75, dosage: "40mg - 30 minutes before breakfast" },
+            { name: "Prednisolone IP", brand: "Orapred / Wysolone 10", category: "Corticosteroid", priceBrand: 45, priceGeneric: 12, savings: 73, dosage: "10mg - Take after breakfast" },
+            { name: "Propranolol Hcl", brand: "Inderal / Ciplar 40", category: "Beta-Blocker / Anxiety", priceBrand: 75, priceGeneric: 18, savings: 76, dosage: "40mg - Twice daily" },
+            { name: "Pioglitazone IP", brand: "Actos / Pioz 15", category: "Antidiabetic", priceBrand: 110, priceGeneric: 28, savings: 75, dosage: "15mg - Once daily with or without food" },
+            { name: "Phenylephrine Hcl", brand: "Sudafed PE / Sinarest", category: "Decongestant", priceBrand: 50, priceGeneric: 14, savings: 72, dosage: "10mg - Every 4 hours as needed" },
+            { name: "Paroxetine IP", brand: "Paxil / Pexep 20", category: "Antidepressant", priceBrand: 180, priceGeneric: 48, savings: 73, dosage: "20mg - Once daily in morning" },
+            { name: "Penicillin V Potassium", brand: "Veetids 250", category: "Antibiotic", priceBrand: 95, priceGeneric: 25, savings: 74, dosage: "250mg - Every 6 hours" },
+
+            // Letter Q
+            { name: "Quetiapine Fumarate", brand: "Seroquel / Qutipin 50", category: "Antipsychotic", priceBrand: 240, priceGeneric: 65, savings: 73, dosage: "50mg - At bedtime" },
+
+            // Letter R
+            { name: "Ramipril IP", brand: "Altace / Cardace 2.5", category: "Hypertension (BP)", priceBrand: 85, priceGeneric: 20, savings: 76, dosage: "2.5mg - Once daily" },
+            { name: "Rosuvastatin Calcium", brand: "Crestor / Rosuvas 10", category: "Cholesterol", priceBrand: 210, priceGeneric: 52, savings: 75, dosage: "10mg - Once daily at night" },
+            { name: "Rantac (Ranitidine / Famotidine)", brand: "Pepcid / Famocid 20", category: "Antacid", priceBrand: 40, priceGeneric: 10, savings: 75, dosage: "20mg - Twice daily before meals" },
+
+            // Letter S
+            { name: "Salbutamol / Albuterol", brand: "Ventolin / Asthalin Inhaler", category: "Asthma Relief", priceBrand: 175, priceGeneric: 55, savings: 68, dosage: "1-2 puffs as needed for wheezing" },
+            { name: "Sitagliptin Phosphate", brand: "Januvia / Sitaglim 50", category: "Diabetes", priceBrand: 390, priceGeneric: 98, savings: 75, dosage: "50mg - Once daily" },
+            { name: "Sertraline Hcl", brand: "Zoloft / Serlift 50", category: "SSRI Antidepressant", priceBrand: 160, priceGeneric: 42, savings: 74, dosage: "50mg - Once daily in morning" },
+
+            // Letter T
+            { name: "Telmisartan IP", brand: "Micardis / Telma 40", category: "Hypertension (BP)", priceBrand: 110, priceGeneric: 28, savings: 75, dosage: "40mg - Once daily" },
+            { name: "Torsemide IP", brand: "Demadex / Dytor 10", category: "Diuretic", priceBrand: 70, priceGeneric: 18, savings: 74, dosage: "10mg - Once daily in morning" },
+
+            // Letter U
+            { name: "Ursodeoxycholic Acid", brand: "Urso 300 / Udiliv 300", category: "Liver & Gallstone", priceBrand: 420, priceGeneric: 120, savings: 71, dosage: "300mg - Twice daily with food" },
+
+            // Letter V
+            { name: "Vagliose / Voglibose", brand: "Voglinorm 0.2", category: "Antidiabetic", priceBrand: 125, priceGeneric: 32, savings: 74, dosage: "0.2mg - Just before meals" },
+            { name: "Valsartan IP", brand: "Diovan / Valzaar 80", category: "Hypertension (BP)", priceBrand: 195, priceGeneric: 50, savings: 74, dosage: "80mg - Once daily" },
+
+            // Letter W
+            { name: "Warfarin Sodium", brand: "Coumadin / Warf 5", category: "Anticoagulant", priceBrand: 85, priceGeneric: 22, savings: 74, dosage: "5mg - Once daily as monitored by INR" },
+
+            // Letter X
+            { name: "Xylometazoline Hcl", brand: "Otrivin Adult Spray", category: "Nasal Decongestant", priceBrand: 95, priceGeneric: 30, savings: 68, dosage: "1-2 sprays per nostril max 3 days" },
+
+            // Letter Y
+            { name: "Yohimbine Hcl", brand: "Yocon 5.4", category: "Vasodilator", priceBrand: 220, priceGeneric: 65, savings: 70, dosage: "As directed by physician" },
+
+            // Letter Z
+            { name: "Zolpidem Tartrate", brand: "Ambien / Nitrest 10", category: "Sleep Aid", priceBrand: 140, priceGeneric: 38, savings: 73, dosage: "10mg - Immediately before bedtime" },
+            { name: "Zinc Sulfate IP", brand: "Zinconia 50", category: "Mineral Supplement", priceBrand: 45, priceGeneric: 12, savings: 73, dosage: "50mg - Once daily after meals" }
+        ];
+
+        // --- DIET DATABASE ---
+        const DIET_DB = {
+            "diabetes": {
+                category: "Diabetes Glucose Balance Plan",
+                foods_to_eat: ["Leafy greens (spinach, kale)", "Whole grains (oats, quinoa)", "Nuts & chia seeds", "Fatty fish (Salmon)", "Fiber-rich vegetables"],
+                foods_to_avoid: ["Sugary carbonated drinks", "White refined bread & pasta", "Sweetened breakfast cereals", "Deep-fried fast foods", "Processed snacks"],
+                tip: "Maintain consistent meal timings and monitor post-meal glucose levels."
+            },
+            "weight_loss": {
+                category: "Caloric Deficit & Metabolism Plan",
+                foods_to_eat: ["Lean proteins (chicken, tofu, lentils)", "Fresh whole berries", "Green tea", "Cruciferous vegetables", "Egg whites"],
+                foods_to_avoid: ["Deep-fried snacks", "Sugary syrups & pastries", "Full-fat dairy beverages", "Ultra-processed chips", "Refined flour (Maida)"],
+                tip: "Stay hydrated with 3-4 liters of water daily and combine your diet with regular cardio."
+            },
+            "hypertension": {
+                category: "Hypertension (High BP) Control Plan",
+                foods_to_eat: ["Bananas & Citrus fruits", "Oatmeal & Garlic", "Beetroot juice", "Magnesium-rich pumpkin seeds", "Low-fat yogurt"],
+                foods_to_avoid: ["High-sodium pickles", "Canned soups & packaged broths", "Salty chips", "Excessive coffee & caffeinated drinks", "Processed meats"],
+                tip: "Keep daily sodium intake below 2,000mg and practice deep breathing."
+            },
+            "thyroid": {
+                category: "Thyroid Metabolic Balance Plan",
+                foods_to_eat: ["Selenium-rich Brazil nuts", "Iodized salt in moderation", "Eggs & Fish", "Whole grains", "Fresh fruits"],
+                foods_to_avoid: ["Raw goitrogenic veggies (excess raw cabbage/broccoli)", "Unfermented soy products", "Gluten-heavy processed foods"],
+                tip: "Take thyroid medication on an empty stomach first thing in the morning."
+            },
+            "fatty_liver": {
+                category: "Hepatic Wellness & Detox Diet Plan",
+                foods_to_eat: ["Black coffee (unsweetened)", "Avocados & Olive oil", "Walnuts", "Green leafy vegetables", "Tofu"],
+                foods_to_avoid: ["Alcoholic beverages", "High-fructose corn syrup", "Trans fats & fried foods", "White refined sugar"],
+                tip: "Engage in 30 minutes of aerobic exercise daily to reduce liver fat accumulation."
+            },
+            "gerd": {
+                category: "GERD & Acid Reflux Relief Plan",
+                foods_to_eat: ["Oatmeal & Bananas", "Ginger tea", "Non-citrus fruits (apples, pears)", "Steamed green beans", "Lean turkey"],
+                foods_to_avoid: ["Citrus fruits & Tomatoes", "Chocolate & Caffeine", "Spicy curries & Fried foods", "Peppermint & Carbonated sodas"],
+                tip: "Avoid lying down for at least 2 to 3 hours after eating a meal."
+            }
+        };
+
+        // --- AUTH & STATE MANAGEMENT ---
+        let currentUser = { username: "Admin User", email: "admin@smartcare.org" };
+        let selectedLetter = "ALL";
+
+        function switchAuthMode(mode) {
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const tabSignInBtn = document.getElementById('tabSignInBtn');
+            const tabSignUpBtn = document.getElementById('tabSignUpBtn');
+
+            if (mode === 'signin') {
+                signInForm.classList.remove('hidden');
+                signUpForm.classList.add('hidden');
+                tabSignInBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-brand-700 bg-white shadow-sm transition-all";
+                tabSignUpBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+            } else {
+                signInForm.classList.add('hidden');
+                signUpForm.classList.remove('hidden');
+                tabSignUpBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-brand-700 bg-white shadow-sm transition-all";
+                tabSignInBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+            }
+        }
+
+        function handleAuthSubmit(e, mode) {
+            e.preventDefault();
+            if (mode === 'signin') {
+                const u = document.getElementById('signInUsername').value.trim();
+                currentUser.username = u || "Admin User";
+            } else {
+                const name = document.getElementById('signUpName').value.trim();
+                currentUser.username = name || "New User";
+            }
+            enterDashboard();
+        }
+
+        function loginAsDemo() {
+            currentUser.username = "Demo User";
+            enterDashboard();
+        }
+
+        function enterDashboard() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('userNameDisplay').textContent = currentUser.username;
+            document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+
+            // Setup A-Z Buttons & Init Databases
+            renderAlphabetButtons();
+            renderMedicineList(MEDICINES_DATA);
+            triggerQuickDiet('diabetes');
+
+            // Launch 3D Visual Graphics Canvas
+            init3DCanvas();
+        }
+
+        function logout() {
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabId) {
+            const views = ['dashboard', 'find-medicines', 'diet-assistance', 'scan-prescription'];
+            views.forEach(v => {
+                const el = document.getElementById(`tabView-${v}`);
+                const btn = document.getElementById(`nav-${v}`);
+                if (el) el.classList.add('hidden');
+                if (btn) btn.classList.remove('active');
+            });
+
+            const targetView = document.getElementById(`tabView-${tabId}`);
+            const targetBtn = document.getElementById(`nav-${tabId}`);
+            if (targetView) targetView.classList.remove('hidden');
+            if (targetBtn) targetBtn.classList.add('active');
+
+            const pageTitles = {
+                'dashboard': 'SmartCare Overview',
+                'find-medicines': 'Find Medicines (A-Z Catalog)',
+                'diet-assistance': 'Diet & Clinical Wellness',
+                'scan-prescription': 'Prescription OCR Scanner'
+            };
+            document.getElementById('activePageTitle').textContent = pageTitles[tabId] || 'SmartCare';
+
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                }
+            }
+
+            if (tabId === 'dashboard') {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }
+
+        // --- A-Z MEDICINE SEARCH & FILTERING ENGINE ---
+        function renderAlphabetButtons() {
+            const container = document.getElementById('alphabetBar');
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            
+            let html = `<button onclick="filterByLetter('ALL')" class="alpha-btn active-letter px-2.5 py-1 text-xs font-semibold border border-slate-200 rounded-md bg-white text-slate-700 hover:bg-brand-50 transition-colors">ALL</button>`;
+            
+            alphabet.forEach(lettr => {
+                html += `<button onclick="filterByLetter('${lettr}')" id="btn-alpha-${lettr}" class="alpha-btn px-2.5 py-1 text-xs font-semibold border border-slate-200 rounded-md bg-white text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors">${lettr}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function filterByLetter(letter) {
+            selectedLetter = letter;
+            document.getElementById('medSearchInput').value = "";
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+
+            document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active-letter'));
+            if (letter === 'ALL') {
+                document.querySelector('.alpha-btn').classList.add('active-letter');
+            } else {
+                const b = document.getElementById(`btn-alpha-${letter}`);
+                if (b) b.classList.add('active-letter');
+            }
+
+            if (letter === 'ALL') {
+                renderMedicineList(MEDICINES_DATA);
+            } else {
+                const filtered = MEDICINES_DATA.filter(m => 
+                    m.name.toUpperCase().startsWith(letter) || m.brand.toUpperCase().startsWith(letter)
+                );
+                renderMedicineList(filtered);
+            }
+        }
+
+        function handleRealtimeMedSearch() {
+            const val = document.getElementById('medSearchInput').value.trim().toLowerCase();
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (val.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+                filterByLetter(selectedLetter);
+                return;
+            }
+
+            // Remove alphabet button highlights during custom typing
+            document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active-letter'));
+
+            // Match if name, brand, or category starts with or contains query
+            const filtered = MEDICINES_DATA.filter(m => 
+                m.name.toLowerCase().includes(val) || 
+                m.brand.toLowerCase().includes(val) || 
+                m.category.toLowerCase().includes(val)
+            );
+
+            renderMedicineList(filtered);
+        }
+
+        function clearMedSearch() {
+            document.getElementById('medSearchInput').value = "";
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            filterByLetter('ALL');
+        }
+
+        function renderMedicineList(list) {
+            const grid = document.getElementById('medListGrid');
+            const badge = document.getElementById('medCountBadge');
+
+            badge.textContent = `Showing ${list.length} Medicine${list.length === 1 ? '' : 's'}`;
+
+            if (list.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl">
+                        <i class="fa-solid fa-prescription-bottle-medical text-4xl text-slate-300 mb-3"></i>
+                        <h4 class="font-bold text-slate-600 text-sm">No medicines found</h4>
+                        <p class="text-xs text-slate-400 mt-1">Try typing a different letter (e.g., 'p') or clearing your search.</p>
+                        <button onclick="clearMedSearch()" class="mt-4 px-4 py-2 bg-brand-700 text-white text-xs font-bold rounded-lg shadow-sm">Reset Search</button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = list.map((item, idx) => `
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 hover:border-brand-500 hover:shadow-md transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 bg-brand-50 text-brand-700 rounded-md uppercase tracking-wider">
+                                ${escapeHtml(item.category)}
+                            </span>
+                            <span class="text-xs font-extrabold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                                Save ${item.savings}%
+                            </span>
+                        </div>
+
+                        <h4 class="text-base font-extrabold text-slate-900">${escapeHtml(item.name)}</h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Branded: <span class="font-semibold text-slate-700">${escapeHtml(item.brand)}</span></p>
+
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">Brand Price</p>
+                                <p class="font-bold text-rose-600 line-through">₹${item.priceBrand}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">Generic Cost</p>
+                                <p class="font-extrabold text-brand-700">₹${item.priceGeneric}</p>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] text-slate-600 mt-3 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-brand-600"></i>
+                            <span>${escapeHtml(item.dosage)}</span>
+                        </p>
+                    </div>
+
+                    <button onclick="openCompareModal('${escapeHtml(item.name)}', '${escapeHtml(item.brand)}', ${item.priceBrand}, ${item.priceGeneric}, ${item.savings}, '${escapeHtml(item.dosage)}')" 
+                            class="mt-4 w-full py-2 bg-slate-100 hover:bg-brand-700 hover:text-white text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-scale-balanced text-xs"></i>
+                        <span>Compare Price & Breakdown</span>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- PRICE BREAKDOWN MODAL ---
+        function openCompareModal(name, brand, priceBrand, priceGeneric, savings, dosage) {
+            const modal = document.getElementById('compareModal');
+            const modalBody = document.getElementById('modalBody');
+
+            const diff = priceBrand - priceGeneric;
+
+            modalBody.innerHTML = `
+                <div class="text-center space-y-1">
+                    <span class="text-xs font-bold text-brand-700 uppercase">Bioequivalent Drug Analysis</span>
+                    <h3 class="text-lg font-extrabold text-slate-900">${name}</h3>
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <div class="flex justify-between items-center p-3 bg-rose-50 rounded-xl border border-rose-100">
+                        <div>
+                            <p class="text-xs font-bold text-rose-900">Branded Option</p>
+                            <p class="text-xs text-rose-700">${brand}</p>
+                        </div>
+                        <span class="font-extrabold text-sm text-rose-700">₹${priceBrand}</span>
+                    </div>
+
+                    <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <div>
+                            <p class="text-xs font-bold text-emerald-900">Generic Alternative</p>
+                            <p class="text-xs text-emerald-700">${name} (Generic IP)</p>
+                        </div>
+                        <span class="font-extrabold text-sm text-emerald-700">₹${priceGeneric}</span>
+                    </div>
+                </div>
+
+                <div class="bg-brand-900 text-white p-4 rounded-xl text-center space-y-1 shadow-md">
+                    <p class="text-xs text-brand-200 font-medium">Direct Financial Benefit</p>
+                    <p class="text-2xl font-black text-brand-400">Save ₹${diff} (${savings}% Off)</p>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600">
+                    <span class="font-bold text-slate-800">Dosage Note:</span> ${dosage}
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeCompareModal() {
+            document.getElementById('compareModal').classList.add('hidden');
+        }
+
+        // --- DIET MODULE LOGIC ---
+        function handleDietSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('dietQueryInput').value;
+            performDietSearch(query);
+        }
+
+        function triggerQuickDiet(name) {
+            document.getElementById('dietQueryInput').value = name;
+            performDietSearch(name);
+        }
+
+        function performDietSearch(query) {
+            const container = document.getElementById('dietResultsDisplay');
+            const clean = query.trim().toLowerCase();
+            if (!clean) return;
+
+            let key = Object.keys(DIET_DB).find(k => k.includes(clean) || clean.includes(k));
+            let data = DIET_DB[key];
+
+            if (!data) {
+                data = {
+                    category: `Nutritional Guidelines for: ${query.toUpperCase()}`,
+                    foods_to_eat: ["Leafy green vegetables", "Lean proteins (tofu, chicken)", "Whole grain oats", "Seasonal fresh fruits", "Chia & flax seeds"],
+                    foods_to_avoid: ["Trans fats & deep-fried foods", "Sugary sodas & drinks", "Excess salt & packaged chips", "Refined flour (Maida)"],
+                    tip: "Maintain balanced meal timing and drink at least 3 liters of water daily."
+                };
+            }
+
+            container.innerHTML = `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-5">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Clinical Dietary Protocol</span>
+                        <h4 class="text-xl font-extrabold text-slate-800">${data.category}</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-emerald-50/80 p-5 rounded-xl border border-emerald-200">
+                            <h5 class="text-xs font-extrabold text-emerald-800 uppercase flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                Foods to Include (Recommended)
+                            </h5>
+                            <ul class="space-y-2 text-xs text-slate-700">
+                                ${data.foods_to_eat.map(i => `<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${i}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-rose-50/80 p-5 rounded-xl border border-rose-200">
+                            <h5 class="text-xs font-extrabold text-rose-800 uppercase flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-circle-xmark text-rose-600"></i>
+                                Foods to Avoid
+                            </h5>
+                            <ul class="space-y-2 text-xs text-slate-700">
+                                ${data.foods_to_avoid.map(i => `<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>${i}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-xs text-blue-900 flex items-start space-x-3">
+                        <i class="fa-solid fa-lightbulb text-blue-600 text-lg mt-0.5"></i>
+                        <div>
+                            <span class="font-bold">Nutritionist Tip:</span>
+                            <p class="mt-0.5 text-blue-800">${data.tip}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- SCANNER MODULE LOGIC ---
+        function handleFileSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                processScan(e.target.files[0].name);
+            }
+        }
+
+        function processScan(fileName) {
+            const loader = document.getElementById('scanLoader');
+            const bar = document.getElementById('scanProgressBar');
+            const display = document.getElementById('scanResultsDisplay');
+
+            loader.classList.remove('hidden');
+            display.classList.add('hidden');
+            bar.style.width = '0%';
+
+            let progress = 0;
+            const timer = setInterval(() => {
+                progress += 25;
+                bar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        loader.classList.add('hidden');
+                        display.classList.remove('hidden');
+                        renderScanOutput(fileName);
+                    }, 300);
+                }
+            }, 250);
+        }
+
+        function renderScanOutput(fileName) {
+            const display = document.getElementById('scanResultsDisplay');
+            display.innerHTML = `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <div>
+                            <span class="text-xs font-bold text-brand-700 uppercase">OCR Optical Analysis Completed</span>
+                            <h4 class="text-sm font-bold text-slate-800">Uploaded File: ${escapeHtml(fileName)}</h4>
+                        </div>
+                        <span class="text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-bold">2 Generic Matches Found</span>
+                    </div>
+
+                    <div class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono space-y-1">
+                        <p class="text-slate-400 font-sans text-[11px] uppercase font-bold tracking-wider">Extracted OCR Text:</p>
+                        <p class="text-emerald-400">"Rx: Paracetamol 650mg tabs #10, Pantoprazole 40mg caps #14. Take after meals."</p>
+                    </div>
+
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Generic Savings Identified:</h5>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-xl border border-brand-200 shadow-sm">
+                            <p class="text-xs text-slate-400 font-bold">Detected Drug #1</p>
+                            <p class="text-sm font-bold text-slate-800">Paracetamol IP 650mg</p>
+                            <p class="text-xs text-brand-700 font-bold mt-1">Generic Cost: ₹10 (Save ~71%)</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-brand-200 shadow-sm">
+                            <p class="text-xs text-slate-400 font-bold">Detected Drug #2</p>
+                            <p class="text-sm font-bold text-slate-800">Pantoprazole Sodium 40mg</p>
+                            <p class="text-xs text-brand-700 font-bold mt-1">Generic Cost: ₹32 (Save ~75%)</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+        }
+
+        // --- 3D THREE.JS CANVAS ANIMATION (MEDICAL CROSS + DNA HELIX) ---
+        let scene, camera, renderer, medicalGroup;
+
+        function init3DCanvas() {
+            const canvas = document.getElementById('canvas3d');
+            if (!canvas || scene) return;
+
+            const container = canvas.parentElement;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.set(0, 0, 15);
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x4caf50, 2.5, 50);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0x00bcd4, 2, 50);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            medicalGroup = new THREE.Group();
+
+            // 3D Medical Cross
+            const crossMat = new THREE.MeshStandardMaterial({
+                color: 0x2e7d32,
+                metalness: 0.3,
+                roughness: 0.2
+            });
+            const vertGeo = new THREE.BoxGeometry(1.2, 4.2, 1.2);
+            const horizGeo = new THREE.BoxGeometry(4.2, 1.2, 1.2);
+            medicalGroup.add(new THREE.Mesh(vertGeo, crossMat));
+            medicalGroup.add(new THREE.Mesh(horizGeo, crossMat));
+
+            // Floating DNA Helix Spheres
+            const helixGroup = new THREE.Group();
+            const sphereGeo = new THREE.SphereGeometry(0.18, 16, 16);
+            const mat1 = new THREE.MeshBasicMaterial({ color: 0x81c784 });
+            const mat2 = new THREE.MeshBasicMaterial({ color: 0x64b5f6 });
+
+            for (let i = 0; i < 24; i++) {
+                const t = i * 0.4;
+                const x1 = Math.sin(t) * 3.2;
+                const y1 = (i - 12) * 0.4;
+                const z1 = Math.cos(t) * 3.2;
+
+                const s1 = new THREE.Mesh(sphereGeo, mat1);
+                s1.position.set(x1, y1, z1);
+                helixGroup.add(s1);
+
+                const s2 = new THREE.Mesh(sphereGeo, mat2);
+                s2.position.set(-x1, y1, -z1);
+                helixGroup.add(s2);
+            }
+            medicalGroup.add(helixGroup);
+
+            // Orbiting Ring
+            const ringGeo = new THREE.TorusGeometry(4.5, 0.05, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xa5d6a7, wireframe: true });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 3;
+            medicalGroup.add(ring);
+
+            scene.add(medicalGroup);
+
+            // Background Particle Stars
+            const pCount = 150;
+            const pGeo = new THREE.BufferGeometry();
+            const pPos = new Float32Array(pCount * 3);
+            for (let i = 0; i < pCount * 3; i++) {
+                pPos[i] = (Math.random() - 0.5) * 24;
+            }
+            pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+            const pMat = new THREE.PointsMaterial({ color: 0xa5d6a7, size: 0.12, transparent: true, opacity: 0.7 });
+            scene.add(new THREE.Points(pGeo, pMat));
+
+            window.addEventListener('resize', onWindowResize);
+            animate3D();
+        }
+
+        function onWindowResize() {
+            if (!camera || !renderer) return;
+            const canvas = document.getElementById('canvas3d');
+            if (!canvas) return;
+            const container = canvas.parentElement;
+            if (!container) return;
+
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            if (medicalGroup) {
+                medicalGroup.rotation.y += 0.01;
+                medicalGroup.rotation.x += 0.003;
+            }
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+    </script>
+</body>
+</html>
